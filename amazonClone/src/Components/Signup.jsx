@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Signup = () => {
@@ -6,6 +6,17 @@ const Signup = () => {
   const [error, setError] = useState({ name: "", email: "", password: "" });
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+   
+    const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const adminExists = existingUsers.some(u => u.email === "chetan@gmail.com");
+
+    if (!adminExists) {
+      existingUsers.push({ name: "Admin", email: "chetan@gmail.com", password: "12345678", role: "admin" });
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+    }
+  }, []);
 
   const validateFields = () => {
     let newError = { name: "", email: "", password: "" };
@@ -34,11 +45,21 @@ const Signup = () => {
   const handleRegister = () => {
     if (!validateFields()) return;
 
-    localStorage.setItem("user", JSON.stringify(user));
+    const existingUsers = JSON.parse(localStorage.getItem("users")) || [];
+
+  
+    if (existingUsers.some(u => u.email === user.email)) {
+      setError(prev => ({ ...prev, email: "Email already registered" }));
+      return;
+    }
+
+    const newUser = { ...user, role: "user" }; 
+    existingUsers.push(newUser);
+    localStorage.setItem("users", JSON.stringify(existingUsers));
+
     alert("Registration successful!");
     navigate("/signin");
   };
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="flex w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 lg:max-w-4xl">
